@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmark Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; position: relative; }
+        .grid { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 80px; }
+        .bookmark { 
+            width: 500px; 
+            aspect-ratio: 16 / 9; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            position: relative; 
+            background: #f9f9f9; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .bookmark img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+        }
+        .bookmark p { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            margin: 0; 
+            padding: 10px; 
+            background: rgba(0, 0, 0, 0.6); 
+            color: white; 
+            font-size: 14px; 
+            line-height: 1.4; 
+            text-align: center; 
+            opacity: 0; 
+            transition: opacity 0.3s ease;
+            z-index: 2;
+        }
+        .bookmark:hover p { 
+            opacity: 1; 
+        }
+        .bookmark form { 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 10px; 
+            background: rgba(255, 255, 255, 0.9); 
+            padding: 20px; 
+            box-sizing: border-box; 
+            z-index: 3; 
+        }
+        .bookmark form input { 
+            width: 90%; 
+            padding: 8px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+        }
+        .bookmark form button { 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .save-btn { background: #007bff; color: white; }
+        .cancel-btn { background: #f44336; color: white; }
+        .actions {
+            position: absolute; 
+            top: 5px; 
+            right: 5px; 
+            display: flex; 
+            gap: 5px; 
+            opacity: 0; 
+            transition: opacity 0.3s ease;
+            z-index: 3;
+        }
+        .bookmark:hover .actions { 
+            opacity: 1; 
+        }
+        .actions button { 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            padding: 5px; 
+            border-radius: 50%; 
+            width: 30px; 
+            height: 30px; 
+        }
+        .actions button:hover { 
+            background: rgba(255, 255, 255, 0.3); 
+        }
+        .edit-icon::before {
+            content: '✏️'; 
+            font-size: 16px;
+        }
+        .delete-icon::before { 
+            content: '🗑️'; 
+            font-size: 16px; 
+        }
+        .floating-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .floating-controls input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .floating-controls button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: #007bff;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .floating-controls button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid" id="bookmarkGrid"></div>
+    <div class="floating-controls">
+        <input type="text" id="searchInput" placeholder="Search..." oninput="filterBookmarks()">
+        <button onclick="addBookmark()">+</button>
+    </div>
+    <script>
+        const base64ToJson = (str) => JSON.parse(atob(str || 'W10='));
+        const jsonToBase64 = (obj) => btoa(JSON.stringify(obj));
+        const getQueryParam = () => new URLSearchParams(window.location.search).get('data');
+        const updateURL = (data) => {
+            const url = new URL(window.location);
+            url.searchParams.set('data', data);
+            history.replaceState(null, '', url);
+        };
+
+        let bookmarks = base64ToJson(getQueryParam());
+        const originalState = [...bookmarks];
+        let filteredBookmarks = [...bookmarks];
+
+        const renderBookmarks = () => {
+            const grid = document.getElementById('bookmarkGrid');
+            grid.innerHTML = '';
+            filteredBookmarks.forEach((bookmark, index) => {
+                const div = document.createElement('div');
+                div.className = 'bookmark';
+                if (bookmark.locked) {
+                    div.innerHTML = `
+                        <a href="${bookmark.url}" target="_blank">
+                            <img src="${bookmark.image}" alt="Bookmark Image">
+                            <p>${bookmark.description}</p>
+                        </a>
+                        <div class="actions">
+                            <button class="edit-icon" onclick="editBookmark(${index})"></button>
+                            <button class="delete-icon" onclick="confirmDelete(${index})"></button>
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <form onsubmit="lockBookmark(${index}); event.preventDefault();">
+                            <input type="text" placeholder="URL" value="${bookmark.url || ''}" oninput="bookmarks[${index}].url=this.value">
+                            <input type="text" placeholder="Image URL" value="${bookmark.image || ''}" oninput="bookmarks[${index}].image=this.value">
+                            <input type="text" placeholder="Description" value="${bookmark.description || ''}" oninput="bookmarks[${index}].description=this.value">
+                            <button class="save-btn" type="submit">Save</button>
+                            <button class="cancel-btn" type="button" onclick="cancelEdit(${index})">Cancel</button>
+                        </form>
+                    `;
+                }
+                grid.appendChild(div);
+            });
+            updateURL(jsonToBase64(bookmarks));
+        };
+
+        const addBookmark = () => {
+            bookmarks.push({ url: '', image: '', description: '', locked: false });
+            filterBookmarks();
+        };
+
+        const lockBookmark = (index) => {
+            bookmarks[index].locked = true;
+            originalState[index] = { ...bookmarks[index] };
+            filterBookmarks();
+        };
+
+        const editBookmark = (index) => {
+            bookmarks[index].locked = false;
+            filterBookmarks();
+        };
+
+        const cancelEdit = (index) => {
+            if (!originalState[index]) {
+                bookmarks.splice(index, 1);
+            } else {
+                bookmarks[index] = { ...originalState[index] };
+            }
+            filterBookmarks();
+        };
+
+        const confirmDelete = (index) => {
+            if (confirm('Are you sure you want to delete this bookmark?')) {
+                deleteBookmark(index);
+            }
+        };
+
+        const deleteBookmark = (index) => {
+            bookmarks.splice(index, 1);
+            originalState.splice(index, 1);
+            filterBookmarks();
+        };
+
+        const filterBookmarks = () => {
+            const searchValue = document.getElementById('searchInput').value.trim();
+            const keywords = searchValue.split(/\s+/).filter(Boolean);
+            filteredBookmarks = bookmarks.filter(bookmark => 
+                keywords.every(keyword => 
+                    new RegExp(keyword, 'i').test(bookmark.url) ||
+                    new RegExp(keyword, 'i').test(bookmark.image) ||
+                    new RegExp(keyword, 'i').test(bookmark.description)
+                )
+            );
+            renderBookmarks();
+        };
+
+        filterBookmarks();
+    </script>
+</body>
+</html>
