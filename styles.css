@@ -3,8 +3,8 @@ body {
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4; /* Muted light background */
-    color: #333; /* Neutral text color */
+    background-color: #f4f4f4;
+    color: #333;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -13,13 +13,12 @@ body {
 header {
     width: 98%;
     padding: 1%;
-    background-color: #6C757D; /* Muted dark gray */
+    background-color: #6C757D;
     color: #ffffff;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: relative;
 }
 
 header h1 {
@@ -35,20 +34,19 @@ header h1 {
 }
 
 header button {
-    background: #E9ECEF; /* Light muted button background */
-    color: #495057; /* Dark muted text color */
+    background: #E9ECEF;
+    color: #495057;
     border: none;
     padding: 8px 16px;
     cursor: pointer;
     border-radius: 4px;
     font-size: 14px;
     font-weight: bold;
-    transition: background-color 0.3s, color 0.3s;
 }
 
 header button:hover {
-    background: #CED4DA; /* Slightly darker muted color on hover */
-    color: #343A40; /* Slightly darker text color */
+    background: #CED4DA;
+    color: #343A40;
 }
 
 #search-box {
@@ -70,7 +68,9 @@ header button:hover {
 }
 
 .bookmark {
-    background: #FFFFFF; /* White card background */
+    width: 300px;
+    height: 250px;
+    background: #FFFFFF;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -82,104 +82,131 @@ header button:hover {
 
 .bookmark:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .bookmark img {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    height: 150px;
     object-fit: cover;
     cursor: pointer;
 }
 
 .bookmark-details {
-    padding: 15px;
-}
-
-.bookmark-details h3 {
-    margin: 0 0 10px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #495057; /* Dark muted text */
+    padding: 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
 }
 
 .bookmark-details p {
-    margin: 0 0 10px;
+    margin: 0;
     font-size: 14px;
     font-weight: normal;
-    color: #6C757D; /* Muted gray for descriptions */
+    color: #6C757D;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
 }
 
-.bookmark-details .tags {
-    font-size: 12px;
-    font-weight: bold;
-    color: #17A2B8; /* Muted blue for tags */
-}
-
-/* Delete Icon */
-.delete-icon {
+/* Delete and Edit Icons */
+.delete-icon, .edit-icon {
     position: absolute;
     top: 10px;
-    right: 10px;
     font-size: 18px;
-    color: #DC3545; /* Muted red */
+    color: white;
     cursor: pointer;
-    background: #FFFFFF; /* White background for icon */
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    padding: 5px;
-    width: 25px;
-    height: 25px;
     display: flex;
     justify-content: center;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    opacity: 0; /* Hide by default */
+    visibility: hidden;
 }
 
-.delete-icon:hover {
+.edit-icon {
+    right: 50px;
+    background: #007BFF; /* Blue */
+}
+
+.delete-icon {
+    right: 10px;
+    background: #DC3545; /* Red */
+}
+
+/* Show icons on hover */
+.bookmark:hover .delete-icon,
+.bookmark:hover .edit-icon {
+    opacity: 1;
+    visibility: visible;
+}
+
+.delete-icon:hover, .edit-icon:hover {
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    background-color: #F8D7DA; /* Light muted red background */
 }
 
-/* Popup Form */
-.popup-form {
-    display: none;
-    position: absolute;
-    top: 60px;
-    right: 20px;
-    background: #F8F9FA; /* Muted light gray background */
+/* Editable Bookmark */
+.bookmark.editable {
+    height: 250px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f8f9fa;
+    border: 1px solid #CED4DA;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    z-index: 10;
-    width: 300px;
 }
 
-.popup-form input,
-.popup-form textarea,
-.popup-form button {
-    width: 98%;
-    margin-bottom: 1%;
-    padding: 1%;
-    font-size: 14px;
-    border: 1px solid #CED4DA; /* Muted border color */
+.bookmark.editable input,
+.bookmark.editable textarea {
+    width: 100%; /* Adjust width to account for padding */
+    padding: 8px;
+    border: 1px solid #CED4DA;
     border-radius: 4px;
-    font-weight: bold;
-    color: #495057; /* Dark muted text */
+    font-size: 14px;
+    box-sizing: border-box; /* Ensure padding/border is included in width */
+    resize: none;
 }
 
-.popup-form button {
-    background-color: #6C757D; /* Muted dark gray button */
+.bookmark.editable textarea {
+    height: 60px; /* Fixed height for description */
+    overflow-y: auto;
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: auto;
+    width: 100%;
+}
+
+.edit-actions .save-bookmark, .edit-actions .cancel-bookmark {
+    background-color: #007BFF;
     color: white;
     border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
     cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s, color 0.3s;
+    flex: 1; /* Makes buttons consistent in size */
+    text-align: center;
 }
 
-.popup-form button:hover {
-    background-color: #495057; /* Slightly darker gray */
+.edit-actions .cancel-bookmark {
+    background-color: #DC3545; /* Red */
+}
+
+.edit-actions .save-bookmark:hover, .edit-actions .cancel-bookmark:hover {
+    opacity: 0.9;
 }
 
 /* Toast Notification */
@@ -188,7 +215,7 @@ header button:hover {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #343A40; /* Dark muted background */
+    background-color: #343A40;
     color: white;
     padding: 10px 20px;
     border-radius: 8px;
@@ -205,9 +232,9 @@ header button:hover {
 }
 
 .toast.success {
-    background-color: #28A745; /* Muted green for success */
+    background-color: #28A745;
 }
 
 .toast.error {
-    background-color: #DC3545; /* Muted red for error */
+    background-color: #DC3545;
 }

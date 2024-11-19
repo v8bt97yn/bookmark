@@ -12,22 +12,12 @@
         <input type="text" id="search-box" placeholder="Search...">
         <div class="header-actions">
             <button id="add-bookmark">Add</button>
-            <button id="copy-link">Copy URL</button>
+            <button id="share-bookmarks">Share</button>
+            <button id="import-bookmarks">Import</button>
         </div>
     </header>
     <div id="bookmark-grid"></div>
-
-    <div class="popup-form" id="add-form">
-        <input type="url" id="url-input" placeholder="Enter URL" required>
-        <input type="url" id="image-input" placeholder="Enter Image URL" required>
-        <input type="text" id="title-input" placeholder="Enter Title" required>
-        <textarea id="description-input" placeholder="Enter Description" rows="3"></textarea>
-        <input type="text" id="tags-input" placeholder="Enter Tags (comma separated)">
-        <button id="submit-bookmark">Add Bookmark</button>
-    </div>
-
     <div id="toast" class="toast"></div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="app.js"></script>
 </body>
