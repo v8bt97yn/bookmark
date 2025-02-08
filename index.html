@@ -1,24 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Bookmark App</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Bookmarks</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f4f4
+        }
+
+        header {
+            background: #6C757D;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        header h1 {
+            margin: 0
+        }
+
+        header div {
+            display: flex;
+            gap: 10px
+        }
+
+        header button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #E9ECEF;
+            color: #495057
+        }
+
+        #bookmark-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px
+        }
+
+        .bookmark {
+            position: relative;
+            width: 300px;
+            height: 250px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform .2s, box-shadow .2s
+        }
+
+        .bookmark:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2)
+        }
+
+        .bookmark img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer
+        }
+
+        .icon {
+            position: absolute;
+            top: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            opacity: 0;
+            transition: opacity .2s
+        }
+
+        .bookmark:hover .icon {
+            opacity: 1
+        }
+
+        .edit {
+            right: 50px;
+            background: #007BFF
+        }
+
+        .delete {
+            right: 10px;
+            background: #DC3545
+        }
+
+        .editable {
+            width: 300px;
+            height: 250px;
+            background: #f8f9fa;
+            border: 1px solid #CED4DA;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .editable input {
+            padding: 8px;
+            border: 1px solid #CED4DA;
+            border-radius: 4px;
+            font-size: 14px
+        }
+
+        .actions {
+            margin-top: auto;
+            display: flex;
+            gap: 10px
+        }
+
+        .actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer
+        }
+
+        .save {
+            background: #007BFF;
+            color: #fff
+        }
+
+        .cancel {
+            background: #DC3545;
+            color: #fff
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #343A40;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity .3s
+        }
+
+        .toast.show {
+            opacity: 1
+        }
+    </style>
 </head>
+
 <body>
     <header>
         <h1>Bookmarks</h1>
-        <input type="text" id="search-box" placeholder="Search...">
-        <div class="header-actions">
-            <button id="add-bookmark">Add</button>
-            <button id="share-bookmarks">Share</button>
-            <button id="import-bookmarks">Import</button>
-        </div>
+        <div><button id="add">Add</button><button id="share">Share</button><button id="import">Import</button></div>
     </header>
     <div id="bookmark-grid"></div>
     <div id="toast" class="toast"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="app.js"></script>
+    <script>
+        const grid = document.getElementById("bookmark-grid"), toast = document.getElementById("toast"); let bookmarks = [];
+        const norm = url => /^https?:\/\//i.test(url) ? url : "https://" + url, showToast = msg => (toast.textContent = msg, toast.classList.add("show"), setTimeout(() => toast.classList.remove("show"), 3000)), render = () => {
+            grid.innerHTML = ""; bookmarks.forEach((b, i) => {
+                let d = document.createElement("div"); d.className = "bookmark"; d.innerHTML = `<img src="${b.image}" alt="Bookmark" onclick="window.open('${norm(b.url)}','_blank','noopener')">
+      <span class="icon edit" title="Edit">&#9998;</span>
+      <span class="icon delete" title="Delete">&#10006;</span>`;
+                d.querySelector(".delete").onclick = () => { if (confirm("Delete bookmark?")) { bookmarks.splice(i, 1); render(); showToast("Deleted") } };
+                d.querySelector(".edit").onclick = () => grid.replaceChild(editable(i, b), d);
+                grid.appendChild(d)
+            })
+        }, editable = (i, b = { url: "", image: "" }) => {
+            let d = document.createElement("div"); d.className = "editable";
+            d.innerHTML = `<input type="url" placeholder="Enter URL" value="${b.url}">
+    <input type="url" placeholder="Enter Image URL" value="${b.image}">
+    <div class="actions"><button class="save">Save</button><button class="cancel">Cancel</button></div>`;
+            d.querySelector(".save").onclick = () => {
+                const url = norm(d.children[0].value.trim()), img = d.children[1].value.trim();
+                if (!url || !img) { showToast("Both fields required"); return; }
+                i >= 0 ? bookmarks[i] = { url, image: img } : bookmarks.push({ url, image: img }); render(); showToast(i >= 0 ? "Updated" : "Added")
+            };
+            d.querySelector(".cancel").onclick = () => { i >= 0 ? render() : d.remove() }; return d
+        };
+        document.getElementById("add").onclick = () => grid.appendChild(editable(-1));
+        document.getElementById("share").onclick = async () => { try { await navigator.clipboard.writeText(btoa(JSON.stringify(bookmarks))); showToast("Copied") } catch (e) { showToast("Share failed") } };
+        document.getElementById("import").onclick = async () => { try { const data = JSON.parse(atob(await navigator.clipboard.readText())); Array.isArray(data) ? (bookmarks = data, render(), showToast("Imported")) : showToast("Invalid data") } catch (e) { showToast("Import failed") } };
+        render();
+    </script>
 </body>
+
 </html>
